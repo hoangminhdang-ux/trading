@@ -1,0 +1,277 @@
+=== KeyCalculator ===
+Symbol: XAUUSD  Bid: 4717.03  Time: 2026.05.11 16:10
+Config: cluster=±15pts, hist=3, fwd=2, topN=100
+
+[Intraday Keys] 24 candidates from 224 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   4501.00  src=5
+   4514.83  src=5
+   4534.38  src=4
+   4550.42  src=5
+   4563.73  src=5
+   4585.64  src=4
+   4606.55  src=5
+   4639.64  src=5
+   4658.34  src=5
+   4674.65  src=5
+   4692.53  src=4
+   4709.24  src=4
+  -- Forward (> price, src=2) --
+   4723.47  src=5
+   4736.80  src=4
+   4752.93  src=5
+   4766.72  src=5
+   4786.07  src=2
+   4825.31  src=2
+   4942.57  src=2
+
+[H1 Turn Keys] 46 candidates from 386 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   4353.09  src=3
+   4410.02  src=3
+   4468.38  src=3
+   4481.94  src=4
+   4501.22  src=5
+   4514.02  src=5
+   4535.03  src=4
+   4554.53  src=5
+   4570.12  src=4
+   4585.04  src=5
+   4605.82  src=5
+   4620.48  src=3
+   4637.76  src=5
+   4654.56  src=5
+   4669.94  src=5
+   4686.55  src=4
+   4702.00  src=5
+  -- Forward (> price, src=2) --
+   4717.60  src=5
+   4737.37  src=5
+   4751.55  src=5
+   4768.10  src=5
+   4786.20  src=4
+   4800.64  src=4
+   4821.99  src=3
+   4833.84  src=4
+   4856.52  src=3
+   4873.43  src=3
+   4894.96  src=4
+   4935.90  src=2
+   4957.97  src=2
+   4973.46  src=3
+   4995.36  src=2
+   5015.73  src=2
+   5038.16  src=2
+   5054.10  src=2
+   5094.80  src=2
+   5113.17  src=2
+   5131.48  src=2
+   5152.04  src=2
+
+[H4 Turn Keys] 67 candidates from 388 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   4254.51  src=4
+   4270.04  src=3
+   4305.53  src=3
+   4349.57  src=3
+   4378.77  src=3
+   4398.41  src=4
+   4455.69  src=3
+   4499.62  src=4
+   4512.01  src=4
+   4533.32  src=4
+   4550.02  src=5
+   4564.21  src=4
+   4586.44  src=3
+   4607.26  src=4
+   4627.11  src=4
+   4641.97  src=4
+   4657.82  src=5
+   4675.51  src=4
+   4693.11  src=4
+   4709.12  src=3
+  -- Forward (> price, src=2) --
+   4727.76  src=3
+   4744.25  src=4
+   4763.90  src=3
+   4786.33  src=2
+   4802.74  src=4
+   4827.44  src=4
+   4842.05  src=4
+   4865.51  src=4
+   4886.15  src=3
+   4905.23  src=2
+   4927.14  src=2
+   4945.73  src=2
+   4965.85  src=2
+   4987.23  src=3
+   5000.55  src=3
+   5015.56  src=4
+   5037.31  src=3
+   5051.83  src=2
+   5078.17  src=2
+   5092.61  src=2
+   5115.86  src=3
+   5132.09  src=3
+   5176.50  src=2
+
+[D1 Turn Keys] 103 candidates from 584 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   4246.12  src=4
+   4280.72  src=3
+   4355.32  src=3
+   4376.69  src=4
+   4398.41  src=4
+   4497.87  src=4
+   4512.90  src=3
+   4536.50  src=4
+   4552.93  src=4
+   4607.92  src=3
+   4626.67  src=3
+   4640.28  src=3
+   4658.48  src=4
+   4673.47  src=3
+   4687.67  src=3
+   4705.53  src=3
+  -- Forward (> price, src=2) --
+   4724.35  src=3
+   4739.21  src=3
+   4753.14  src=3
+   4770.50  src=3
+   4793.74  src=3
+   4815.73  src=2
+   4837.88  src=4
+   4857.02  src=3
+   4871.24  src=2
+   4894.52  src=4
+   4911.62  src=2
+   4931.63  src=2
+   4945.73  src=2
+   4968.35  src=2
+   4986.56  src=2
+   5002.03  src=2
+   5016.09  src=3
+   5034.15  src=2
+   5055.53  src=2
+   5078.17  src=2
+   5092.98  src=2
+   5115.39  src=3
+   5132.71  src=2
+   5153.72  src=2
+   5174.42  src=2
+
+=== Master Keys (cross-tier union, dedup ±5pt) 150 levels ===
+  -- Historical (= price, src=3) --
+   4246.12  src=4  tiers=[D1]  conf=1
+   4254.51  src=4  tiers=[H4]  conf=1
+   4270.04  src=3  tiers=[H4]  conf=1
+   4280.72  src=3  tiers=[D1]  conf=1
+   4305.53  src=3  tiers=[H4]  conf=1
+   4351.33  src=3  tiers=[H1,H4]  conf=2
+   4355.32  src=3  tiers=[D1]  conf=1
+   4377.73  src=4  tiers=[H4,D1]  conf=2
+   4396.94  src=4  tiers=[H1,H4,D1]  conf=3
+   4412.21  src=3  tiers=[I,H1,H4]  conf=3
+   4456.60  src=3  tiers=[H4,D1]  conf=2
+   4469.46  src=3  tiers=[I,H1]  conf=2
+   4482.57  src=4  tiers=[I,H1]  conf=2
+   4499.93  src=5  tiers=[I,H1,H4,D1]  conf=4
+   4513.44  src=5  tiers=[I,H1,H4,D1]  conf=4
+   4534.81  src=4  tiers=[I,H1,H4,D1]  conf=4
+   4551.97  src=5  tiers=[I,H1,H4,D1]  conf=4
+   4565.00  src=5  tiers=[I,H4,D1]  conf=3
+   4570.12  src=4  tiers=[H1]  conf=1
+   4586.11  src=5  tiers=[I,H1,H4,D1]  conf=4
+   4606.89  src=5  tiers=[I,H1,H4,D1]  conf=4
+   4622.47  src=3  tiers=[I,H1]  conf=2
+   4626.89  src=4  tiers=[H4,D1]  conf=2
+   4639.91  src=5  tiers=[I,H1,H4,D1]  conf=4
+   4657.30  src=5  tiers=[I,H1,H4,D1]  conf=4
+   4672.69  src=5  tiers=[I,H1,D1]  conf=3
+   4675.51  src=4  tiers=[H4]  conf=1
+   4687.11  src=4  tiers=[H1,D1]  conf=2
+   4692.82  src=4  tiers=[I,H4]  conf=2
+   4703.77  src=5  tiers=[H1,D1]  conf=2
+   4709.18  src=4  tiers=[I,H4]  conf=2
+  -- Forward (> price, src=2) --
+   4717.60  src=5  tiers=[H1]  conf=1
+   4725.19  src=5  tiers=[I,H4,D1]  conf=3
+   4737.79  src=5  tiers=[I,H1,D1]  conf=3
+   4744.25  src=4  tiers=[H4]  conf=1
+   4752.54  src=5  tiers=[I,H1,D1]  conf=3
+   4766.24  src=5  tiers=[I,H1,H4]  conf=3
+   4770.50  src=3  tiers=[D1]  conf=1
+   4786.20  src=4  tiers=[I,H1,H4]  conf=3
+   4793.74  src=3  tiers=[D1]  conf=1
+   4801.69  src=4  tiers=[H1,H4]  conf=2
+   4815.73  src=2  tiers=[D1]  conf=1
+   4823.65  src=3  tiers=[I,H1]  conf=2
+   4827.44  src=4  tiers=[H4]  conf=1
+   4835.86  src=4  tiers=[H1,D1]  conf=2
+   4842.05  src=4  tiers=[H4]  conf=1
+   4856.77  src=3  tiers=[H1,D1]  conf=2
+   4865.51  src=4  tiers=[H4]  conf=1
+   4872.34  src=3  tiers=[H1,D1]  conf=2
+   4886.15  src=3  tiers=[H4]  conf=1
+   4894.74  src=4  tiers=[H1,D1]  conf=2
+   4905.23  src=2  tiers=[H4]  conf=1
+   4911.62  src=2  tiers=[D1]  conf=1
+   4929.39  src=2  tiers=[H4,D1]  conf=2
+   4935.90  src=2  tiers=[H1]  conf=1
+   4944.68  src=2  tiers=[I,H4,D1]  conf=3
+   4957.97  src=2  tiers=[H1]  conf=1
+   4967.10  src=2  tiers=[H4,D1]  conf=2
+   4973.46  src=3  tiers=[H1]  conf=1
+   4986.89  src=3  tiers=[H4,D1]  conf=2
+   4995.36  src=2  tiers=[H1]  conf=1
+   5001.29  src=3  tiers=[H4,D1]  conf=2
+   5015.79  src=4  tiers=[H1,H4,D1]  conf=3
+   5036.54  src=3  tiers=[H1,H4,D1]  conf=3
+   5053.82  src=2  tiers=[H1,H4,D1]  conf=3
+   5078.17  src=2  tiers=[H4,D1]  conf=2
+   5093.46  src=2  tiers=[H1,H4,D1]  conf=3
+   5114.81  src=3  tiers=[H1,H4,D1]  conf=3
+   5132.09  src=3  tiers=[H1,H4,D1]  conf=3
+   5152.88  src=2  tiers=[H1,D1]  conf=2
+   5175.46  src=2  tiers=[H4,D1]  conf=2
+
+=== Sheet levels (from /api/keys, within ±5% of price) ===
+[Intraday sheet] 10 levels
+   4886.24
+   4851.37
+   4822.26
+   4790.81
+   4756.62
+   4721.87
+   4684.33
+   4646.51
+   4605.77
+   4564.14
+[H1 sheet] 10 levels
+   5025.00
+   4927.00
+   4837.00
+   4749.00
+   4673.00
+   4587.00
+   4503.00
+   4425.00
+   4351.00
+   4263.00
+[H4 sheet] 11 levels
+   5134.00
+   4972.00
+   4852.00
+   4730.00
+   4592.00
+   4468.00
+   4343.00
+[D1 sheet] 6 levels
+   4900.00
+   4587.00
+   4362.00
+[W1 sheet] 4 levels
+   5104.00
+   4763.00
+   4462.00
+   4338.00

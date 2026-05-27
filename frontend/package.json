@@ -1,0 +1,16 @@
+{
+  "name": "trading-frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "cp index.html static/index.html && cp ../scripts/compare-keys.html static/compare-keys.html && wrangler pages deploy static"
+  },
+  "dependencies": {
+    "astro": "^4.16.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.95.0"
+  }
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EA vs Sheet Keys — XAUUSD</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2332;
+    --border: #2a3a52;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --green: #3fb950;
+    --amber: #d29922;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --yellow: #fde047;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; font: 14px/1.5 -apple-system, BlinkMacSystemFont, monospace; background: var(--bg); color: var(--text); }
+  h1 { margin: 0 0 6px; font-size: 20px; }
+  .sub { color: var(--muted); margin-bottom: 14px; font-size: 12px; }
+  .controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .controls label { color: var(--muted); font-size: 12px; }
+  .controls input, .controls select { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 5px 8px; border-radius: 4px; font: inherit; }
+  .controls button { background: var(--blue); color: #000; border: 0; padding: 5px 12px; border-radius: 4px; font: inherit; font-weight: 600; cursor: pointer; }
+  .source-tag { font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+  .source-live { background: rgba(63,185,80,0.2); color: var(--green); }
+  .source-db   { background: rgba(88,166,255,0.2); color: var(--blue); }
+  .meta { color: var(--muted); font-size: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+  .panel h2 { margin: 0 0 8px; font-size: 14px; color: var(--yellow); display: flex; justify-content: space-between; align-items: baseline; }
+  .panel h2 .count { color: var(--muted); font-weight: normal; font-size: 11px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 4px 6px; text-align: right; border-bottom: 1px solid #222; }
+  th { color: var(--muted); font-weight: 500; font-size: 11px; }
+  tr.match td.delta { color: var(--green); }
+  tr.near  td.delta { color: var(--amber); }
+  tr.miss  td.delta { color: var(--red); }
+  tr.miss  td.ea    { color: var(--muted); }
+  .err { color: var(--red); padding: 12px; background: rgba(248, 81, 73, 0.1); border-radius: 4px; }
+  .stats { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; font-size: 12px; }
+  .stat { background: var(--panel); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+  .stat .v { color: var(--yellow); font-weight: 600; font-size: 15px; }
+  .stat .l { color: var(--muted); font-size: 10px; }
+  .no-snapshot { color: var(--amber); font-size: 12px; padding: 8px 0; }
+</style>
+</head>
+<body>
+
+<h1>EA vs Sheet Keys — <span style="color:var(--yellow)">XAUUSD</span></h1>
+<div class="sub">Sheet levels (manual GVF) on left. Nearest EA-computed level on right. Δ tolerance configurable.</div>
+
+<div class="controls">
+  <label>API:</label>
+  <input id="host" value="" placeholder="(same origin)" style="width:240px">
+  <label>Tol $:</label>
+  <input id="tol" type="number" value="15" min="1" max="50" style="width:55px">
+  <label>Sheet:</label>
+  <select id="dateSelect" style="width:160px">
+    <option value="">Today (live)</option>
+  </select>
+  <button id="reload">Reload</button>
+  <span class="meta" id="bidInfo"></span>
+</div>
+
+<div class="stats" id="stats"></div>
+<div id="content"></div>
+
+<script>
+const PAIRS = [
+  { label: 'INTRADAY', ea: 'intraday', sheet: 'intradayKeys', dbTier: 'intraday' },
+  { label: 'H1',       ea: 'h1',       sheet: 'h1Turn',       dbTier: 'h1'       },
+  { label: 'H4',       ea: 'h4',       sheet: 'h4Turn',       dbTier: 'h4'       },
+  { label: 'DAILY',    ea: 'd1',       sheet: 'dailyTurn',    dbTier: 'daily'    },
+];
+
+async function loadDates() {
+  const host = document.getElementById('host').value.trim().replace(/\/$/, '');
+  try {
+    const res = await fetch(`${host}/api/sheet-keys/dates`).then(r => r.json());
+    const sel = document.getElementById('dateSelect');
+    sel.innerHTML = '<option value="">Today (live)</option>';
+    (res.dates || []).forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      sel.appendChild(opt);
+    });
+  } catch (_) {}
+}
+
+async function loadAll() {
+  const host = document.getElementById('host').value.trim().replace(/\/$/, '');
+  const tol  = parseFloat(document.getElementById('tol').value) || 15;
+  const date = document.getElementById('dateSelect').value;
+  const out  = document.getElementById('content');
+  const stats= document.getElementById('stats');
+  out.innerHTML = 'Loading…';
+  stats.innerHTML = '';
+
+  try {
+    let sheetData;
+    let sheetLabel;
+
+    if (!date) {
+      // Realtime from Google Sheets
+      const shRes = await fetch(`${host}/api/keys?fresh=1`, { cache: 'no-store' }).then(r => r.json());
+      sheetData = {
+        intradayKeys: shRes.intradayKeys || [],
+        h1Turn:       shRes.h1Turn       || [],
+        h4Turn:       shRes.h4Turn       || [],
+        dailyTurn:    shRes.dailyTurn    || [],
+      };
+      sheetLabel = `<span class="source-tag source-live">LIVE</span>`;
+    } else {
+      // Historical snapshot from DB
+      const dbRes = await fetch(`${host}/api/sheet-keys?date=${date}`).then(r => r.json());
+      const rows = dbRes.data || [];
+      if (!rows.length) {
+        out.innerHTML = `<div class="no-snapshot">No snapshot found for ${date}. Snapshots are taken daily at 08:00 VN time.</div>`;
+        return;
+      }
+      sheetData = {
+        intradayKeys: rows.filter(r => r.tier === 'intraday').map(r => r.level),
+        h1Turn:       rows.filter(r => r.tier === 'h1').map(r => r.level),
+        h4Turn:       rows.filter(r => r.tier === 'h4').map(r => r.level),
+        dailyTurn:    rows.filter(r => r.tier === 'daily').map(r => r.level),
+      };
+      sheetLabel = `<span class="source-tag source-db">DB ${date}</span>`;
+    }
+
+    const eaRes = await fetch(`${host}/api/computed-keys?symbol=XAUUSD${date ? '&since=' + date + 'T00:00:00' : ''}`).then(r => r.json());
+    const eaRows = eaRes.data || [];
+    if (!eaRows.length) { out.innerHTML = '<div class="err">No EA keys in DB.</div>'; return; }
+
+    const latestAt = eaRows[0].computedAt;
+    const latest   = eaRows.filter(r => r.computedAt === latestAt);
+    const bidRef   = latest[0]?.bidRef;
+
+    document.getElementById('bidInfo').innerHTML =
+      `${sheetLabel} &nbsp;EA: ${latestAt} · bid ${bidRef?.toFixed(2)}`;
+
+    const grid = document.createElement('div'); grid.className = 'grid';
+    let totalMatch = 0, totalSheet = 0;
+
+    for (const p of PAIRS) {
+      const eaLvls = latest.filter(r => r.tier === p.ea).map(r => r.level);
+      const sheetLvls = [...(sheetData[p.sheet] || [])].sort((a, b) => b - a);
+
+      const matched = sheetLvls.map(sl => {
+        let best = null, bestD = Infinity;
+        for (const e of eaLvls) {
+          const d = Math.abs(e - sl);
+          if (d < bestD) { bestD = d; best = e; }
+        }
+        return { sheet: sl, ea: best, delta: best != null ? best - sl : null, ok: best != null && bestD <= tol };
+      });
+      const matchCount = matched.filter(m => m.ok).length;
+      totalMatch += matchCount;
+      totalSheet += sheetLvls.length;
+
+      const panel = document.createElement('div'); panel.className = 'panel';
+      panel.innerHTML = `
+        <h2>${p.label}<span class="count">${matchCount}/${sheetLvls.length}</span></h2>
+        <table>
+          <thead><tr><th>Sheet</th><th>EA</th><th>Δ</th></tr></thead>
+          <tbody>
+            ${matched.map(m => {
+              const cls = m.ok ? 'match' : (m.ea != null && Math.abs(m.delta) <= tol * 2 ? 'near' : 'miss');
+              return `<tr class="${cls}">
+                <td>${m.sheet.toFixed(2)}</td>
+                <td class="ea">${m.ea != null ? m.ea.toFixed(2) : '—'}</td>
+                <td class="delta">${m.ea != null ? (m.delta>=0?'+':'') + m.delta.toFixed(2) : '—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+      grid.appendChild(panel);
+    }
+
+    stats.innerHTML = `
+      <div class="stat"><div class="v">${totalMatch}/${totalSheet}</div><div class="l">matched (±$${tol})</div></div>
+      <div class="stat"><div class="v">${bidRef?.toFixed(2)}</div><div class="l">bid ref</div></div>
+      <div class="stat"><div class="v">${latestAt.slice(0,10)}</div><div class="l">EA snapshot</div></div>
+    `;
+
+    out.innerHTML = '';
+    out.appendChild(grid);
+  } catch (e) {
+    out.innerHTML = `<div class="err">Failed: ${e.message}</div>`;
+  }
+}
+
+document.getElementById('reload').addEventListener('click', () => { loadDates().then(loadAll); });
+document.getElementById('dateSelect').addEventListener('change', loadAll);
+loadDates().then(loadAll);
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+=== KeyCalculator ===
+Symbol: XAUUSD  Close: 3223.78  Time: 2025.05.01 16:00  [BACKTEST]
+Config: cluster=±15pts, hist=3, fwd=2, topN=100
+
+[Intraday Keys] 22 candidates from 222 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   3221.54  src=3
+  -- Forward (> price, src=2) --
+   3239.44  src=3
+   3256.40  src=4
+   3268.62  src=5
+   3288.56  src=5
+   3304.24  src=5
+   3319.41  src=5
+   3334.00  src=5
+   3351.35  src=5
+   3367.69  src=5
+   3382.51  src=3
+   3399.40  src=3
+   3416.35  src=3
+   3436.36  src=3
+   3458.66  src=2
+   3473.02  src=2
+   3495.62  src=4
+
+[H1 Turn Keys] 39 candidates from 384 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   2954.48  src=3
+   2972.84  src=3
+   3000.02  src=4
+   3017.39  src=3
+   3033.04  src=4
+   3052.95  src=3
+   3094.96  src=3
+   3106.79  src=4
+   3127.55  src=4
+   3141.73  src=4
+   3162.40  src=4
+   3192.67  src=4
+   3208.59  src=3
+  -- Forward (> price, src=2) --
+   3240.09  src=4
+   3256.25  src=4
+   3267.63  src=5
+   3287.95  src=5
+   3302.74  src=5
+   3318.28  src=4
+   3333.42  src=5
+   3351.81  src=5
+   3367.69  src=5
+   3382.51  src=3
+   3398.06  src=2
+   3416.35  src=3
+   3436.14  src=2
+   3458.66  src=2
+   3473.02  src=2
+   3495.62  src=4
+
+[H4 Turn Keys] 55 candidates from 382 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   2905.40  src=3
+   2924.36  src=3
+   2945.01  src=4
+   2959.94  src=5
+   3019.25  src=4
+   3033.80  src=3
+   3055.58  src=4
+   3068.66  src=3
+   3101.60  src=4
+   3134.78  src=4
+   3152.83  src=3
+   3171.36  src=3
+   3191.71  src=4
+  -- Forward (> price, src=2) --
+   3225.86  src=3
+   3245.28  src=3
+   3263.17  src=4
+   3284.90  src=4
+   3300.23  src=3
+   3317.05  src=2
+   3333.18  src=3
+   3353.57  src=4
+   3373.17  src=3
+   3394.20  src=2
+   3412.79  src=2
+   3435.14  src=2
+   3455.00  src=3
+   3498.03  src=4
+
+[D1 Turn Keys] 82 candidates from 587 raw levels (hist=3, fwd=2)
+  -- Historical (= price, src=3) --
+   2946.02  src=3
+   2960.11  src=5
+   3027.33  src=3
+   3061.54  src=4
+   3096.77  src=3
+   3134.53  src=3
+   3191.23  src=3
+  -- Forward (> price, src=2) --
+   3225.86  src=3
+   3245.12  src=2
+   3263.32  src=3
+   3285.00  src=3
+   3300.23  src=3
+   3317.05  src=2
+   3333.18  src=3
+   3353.19  src=3
+   3373.65  src=2
+   3394.20  src=2
+   3412.79  src=2
+   3435.14  src=2
+   3455.00  src=3
+   3497.52  src=3
+
+=== Backtest mode — sheet fetch skipped ===
+Diff against goldviewfx_history.json bullish/bearish levels manually.

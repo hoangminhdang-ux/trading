@@ -1,0 +1,26 @@
+{
+  "name": "trading-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-11-27",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "trading-db",
+      "database_id": "8bc5b08b-8883-4bfd-ad25-ae136ba5bd2c",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  },
+
+  // Cron: 0 1 * * * = 08:00 Vietnam (UTC+7) daily — snapshot sheet keys to DB
+
+  // Custom domain: set in Cloudflare Dashboard → Workers & Pages → trading-api → Settings → Custom Domains → trading.boredstudio.ai
+
+  // After deploy, set via: wrangler secret put EA_SECRET
+  // EA_SECRET: the plain-text secret the EA will send in X-EA-Secret header
+}

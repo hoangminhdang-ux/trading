@@ -1,0 +1,221 @@
+{
+  "source": "tradingview.com/u/Goldviewfx",
+  "scraped_at": "2026-05-11",
+  "post_count": 14,
+  "date_range": {
+    "earliest": "2024-05-01",
+    "latest": "2026-05-08"
+  },
+  "posts": [
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/9kHwrPHu-GOLD-4770-Still-On-The-Radar/",
+      "date": "2026-05-08",
+      "title": "GOLD - 4770 Still On The Radar",
+      "post_type": "update",
+      "bullish_levels": [4770],
+      "bearish_levels": [4504],
+      "gap_up_trigger": null,
+      "gap_down_trigger": null,
+      "notes": "Strong move off swing range bounce into 4681 EMA5 lock level. Price fell just short of 4770. As long as 4681 holds as support, upside remains in focus. 4681 is key EMA5 lock support level."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/rdMiNZHu-Gold-Spotting-Higher-Lows-Before-the-Move-Up/",
+      "date": "2026-03-27",
+      "title": "Gold: Spotting Higher Lows Before the Move Up",
+      "post_type": "update",
+      "bullish_levels": [4607],
+      "bearish_levels": [4524],
+      "gap_up_trigger": null,
+      "gap_down_trigger": null,
+      "notes": "Structural analysis post. Higher lows forming inside bearish trend signal weakening sellers. Support at 4524, resistance at 4607. No EMA5 lock mentioned explicitly."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/1IiltlD5-Gold-Pullback-Why-This-Doesn-t-Change-Long-Term-Structure/",
+      "date": "2026-03-16",
+      "title": "Gold Pullback - Why This Doesn't Change Long-Term Structure",
+      "post_type": "update",
+      "bullish_levels": [],
+      "bearish_levels": [],
+      "gap_up_trigger": null,
+      "gap_down_trigger": null,
+      "notes": "Educational/macro piece. Argues pullback is normal correction within larger uptrend. Cites central bank demand, global uncertainty, inflation. No specific price targets or EMA5 levels."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/bkVYUJgK-GOLD-1H-CHART-ROUTE-MAP-UPDATE-TRADING-PLAN-FOR-THE-WEEK/",
+      "date": "2025-12-09",
+      "title": "GOLD 1H CHART ROUTE MAP UPDATE & TRADING PLAN FOR THE WEEK",
+      "post_type": "weekly_map",
+      "bullish_levels": [4211, 4221, 4250, 4284, 4320, 4361],
+      "bearish_levels": [4169, 4130, 4093, 4049, 4015],
+      "gap_up_trigger": 4221,
+      "gap_down_trigger": 4169,
+      "notes": "Price playing between weighted levels. Gap above at 4221, gap below at 4169 as support. EMA5 cross and lock on either weighted level needed to confirm direction for next range. Levels tested side by side until one breaks and locks. Targets confirmed hit Dec 8-11. Buy dips using support for 20-40 pip bounces."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/C0aPKMZh-GOLD-4H-CHART-ROUTE-MAP-UPDATE/",
+      "date": "2025-05-01",
+      "title": "GOLD 4H CHART ROUTE MAP UPDATE",
+      "post_type": "weekly_map",
+      "bullish_levels": [3343, 3404, 3439, 3503],
+      "bearish_levels": [3282, 3224, 3190, 3138, 3088, 3046],
+      "gap_up_trigger": 3343,
+      "gap_down_trigger": 3282,
+      "notes": "EMA5 crossed and locked below 3282 opening 3224 (completed). EMA5 cross and lock above 3343 opens 3404, above 3404 opens 3439, above 3439 opens 3503. Swing ranges: 3190-3138, secondary: 3088-3046. Strategy: buy dips using support levels taking 30-40 pips."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/v9Ndirne-GOLD-1H-AND-4H-CHART-ROUTE-MAP-UPDATE/",
+      "date": "2024-10-30",
+      "title": "GOLD 1H AND 4H CHART ROUTE MAP UPDATE",
+      "post_type": "weekly_map",
+      "bullish_levels": [2762, 2772, 2779, 2781, 2797, 2814],
+      "bearish_levels": [2715, 2693, 2669],
+      "gap_up_trigger": 2779,
+      "gap_down_trigger": 2715,
+      "notes": "1H: EMA5 cross and lock above 2762 (completed), opening 2772 and 2781. EMA5 lock above 2779 opens range above. 4H: EMA5 cross and lock above 2737 opened 2760 and 2779. EMA5 CROSS AND LOCK ABOVE 2779 WILL OPEN 2797, 2814. EMA5 CROSS AND LOCK BELOW 2715 WILL OPEN SWING RANGE. Described as a 'PIPTASTIC day'."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/YCFxhlnH-GOLD-4H-ROUTE-MAP-UPDATE/",
+      "date": "2024-09-26",
+      "title": "GOLD 4H ROUTE MAP UPDATE",
+      "post_type": "update",
+      "bullish_levels": [2645, 2664, 2682, 2699],
+      "bearish_levels": [],
+      "gap_up_trigger": 2626,
+      "gap_down_trigger": null,
+      "notes": "EMA5 cross and lock above 2626 opened 2645 and 2664 (both completed). EMA5 cross and lock above 2664 opens 2682 and potentially 2699. If EMA5 fails to cross below 2664 and holds as support, likely to see another 2682 retest. Strong bullish bias. Targets at 2645, 2664 completed."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/g9POwR3H-Gold-update-on-last-weeks-route-map/",
+      "date": "2021-12-28",
+      "title": "Gold update on last weeks route map",
+      "post_type": "update",
+      "bullish_levels": [1797, 1808, 1819],
+      "bearish_levels": [1790, 1782],
+      "gap_up_trigger": null,
+      "gap_down_trigger": 1790,
+      "notes": "Bullish sequence: 1797, 1808, 1819 all hit in order. Position profits secured. EMA5 break at 1790 leaving gap open to 1782 as bearish scenario. Maintaining bullish bias pending decent drop for re-entry. Outside target date range but included for schema reference."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/q80ODBGa-GoldViewFX-4H-CHART-UPDATED-LEVELS-TARGETS/",
+      "date": "2022-09-25",
+      "title": "GoldViewFX - 4H CHART UPDATED LEVELS & TARGETS",
+      "post_type": "update",
+      "bullish_levels": [1664, 1679, 1693, 1710, 1726],
+      "bearish_levels": [1640, 1622, 1586],
+      "gap_up_trigger": 1693,
+      "gap_down_trigger": 1622,
+      "notes": "EMA5 CROSS AND LOCK ABOVE 1693 WILL OPEN 1710 AND 1726. EMA5 CROSS AND LOCK BELOW 1622 WILL OPEN 1586. Swing range at 1626. Outside target date range but included for schema reference."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/a8mWoyD8-GoldViewFX-Market-UPDATE/",
+      "date": "2022-11-03",
+      "title": "GoldViewFX - Market UPDATE",
+      "post_type": "update",
+      "bullish_levels": [1651, 1664, 1672, 1691, 1699, 1718],
+      "bearish_levels": [1641, 1632, 1625, 1616, 1607, 1597],
+      "gap_up_trigger": 1672,
+      "gap_down_trigger": 1625,
+      "notes": "EMA5 cross and lock above 1672 opens 1691, 1699, 1718. EMA5 cross and lock below 1625 opens 1616, 1607, 1597. Swing range: 1626. Multiple levels completed in both directions. Outside target date range but included for schema reference."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/Onpv93wE-GoldViewFX-Market-UPDATE/",
+      "date": "2023-02-15",
+      "title": "GoldViewFX - Market UPDATE",
+      "post_type": "update",
+      "bullish_levels": [1867, 1872, 1876, 1896, 1903],
+      "bearish_levels": [1863, 1857, 1853, 1849, 1841, 1833],
+      "gap_up_trigger": 1884,
+      "gap_down_trigger": 1857,
+      "notes": "EMA5 CROSS AND LOCK ABOVE 1884 will open 1896 and 1903. EMA5 broke 1857 and locked Monday opening swing range. EMA5 CROSS AND LOCK BELOW 1857 WILL OPEN 1853, 1849, 1841, 1833. Multiple levels achieved: 1863, 1857, 1853, 1841, 1833, 1867 all completed. Outside target date range but included for schema reference."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/Y9AeJ6YC-GoldViewFX-1H-CHART-UPDATED-LEVELS-TARGETS/",
+      "date": "2022-10-30",
+      "title": "GoldViewFX - 1H CHART UPDATED LEVELS & TARGETS",
+      "post_type": "update",
+      "bullish_levels": [1650, 1653, 1657, 1661, 1664, 1668, 1673],
+      "bearish_levels": [1642, 1638, 1633, 1630, 1626, 1622],
+      "gap_up_trigger": 1657,
+      "gap_down_trigger": 1638,
+      "notes": "EMA5 CROSS AND LOCK ABOVE 1657 WILL OPEN 1661, 1664, 1668 AND 1673. EMA5 CROSS AND LOCK BELOW 1638 WILL OPEN 1633, 1630, 1626 AND 1622. Swing range level: 1626. Outside target date range but included for schema reference."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/ddGhookw-DAILY-CHART-FORECAST-GOLDTURN-AXIS/",
+      "date": "2021-11-21",
+      "title": "DAILY CHART FORECAST - GOLDTURN AXIS",
+      "post_type": "update",
+      "bullish_levels": [1896],
+      "bearish_levels": [1832],
+      "gap_up_trigger": null,
+      "gap_down_trigger": null,
+      "notes": "Goldturn axis level target at 1896. Support at 1832 noted as 'due'. Strategy: wait for price settlement at 1832 before entering long, stops below Goldturn axis levels. Outside target date range but included for schema reference."
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/uZZWyzec-GoldViewFX-TRADING-ETHOS-STRESS-FREE-TRADING/",
+      "date": "2022-12-23",
+      "title": "GoldViewFX - TRADING ETHOS & STRESS FREE TRADING",
+      "post_type": "unknown",
+      "bullish_levels": [],
+      "bearish_levels": [],
+      "gap_up_trigger": null,
+      "gap_down_trigger": null,
+      "notes": "Educational piece on risk management. No price targets. Advocates staged profit-taking, trailing stops, 1-3% risk per trade. Outside target date range."
+    }
+  ],
+  "skipped": [
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/usVL2Uoy-GoldViewFX-GVFX-GOLDTURN-RANGE-BREAKER-SETUP/",
+      "reason": "Educational setup explanation post — no specific price levels for a dated trade plan",
+      "date": "2022-09-25"
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/3G7oAecp-BULL-BEAR-FLAG-PATTERNS/",
+      "reason": "Educational pattern explanation — no price levels or dates applicable to backtest",
+      "date": "2021-12-09"
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/twWnyKne-GoldViewFX-THE-ART-OF-RANGE-MANAGEMENT/",
+      "reason": "Educational range management piece — no specific price levels",
+      "date": "2023-02-15"
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/wpy7txCe-GoldViewFX-TRADING-SESSIONS-TIME-ZONE/",
+      "reason": "Trading session/timezone overview — no price levels",
+      "date": "2022-01-14"
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/XRSpSPyx-GoldViewFX-How-to-Draw-our-Goldturns-Goldturn-trendlines/",
+      "reason": "Tutorial on drawing Goldturn levels — no dateable trade plan levels",
+      "date": "unknown"
+    },
+    {
+      "url": "https://www.tradingview.com/chart/XAUUSD/5mivGxgE-GoldViewFX-1H-CHART-UPDATED-LEVELS-TARGETS/",
+      "reason": "HTTP 404 — page no longer accessible",
+      "date": "unknown"
+    }
+  ],
+  "discovery_notes": {
+    "method": "WebSearch (site:tradingview.com queries) + direct WebFetch of each discovered URL",
+    "systematic_blockers": [
+      "TradingView profile page (/u/Goldviewfx/) is JS-rendered — idea list does not appear in static HTML fetch",
+      "TradingView ideas listing pages (/symbols/XAUUSD/ideas/) show generic feed, not user-filtered — Goldviewfx posts not reliably surfaced",
+      "TradingView API endpoints return 404 (not publicly accessible without auth)",
+      "Google search index returns only ~8-10 unique Goldviewfx chart URLs regardless of query variation — older posts (2024 H1, most of 2025) are not indexed",
+      "Wayback Machine blocked by WebFetch tool",
+      "Most 2024 H1 posts (Jan-Aug 2024, gold range ~2000-2500) not discoverable via search — those post URLs are buried in JS-rendered profile pagination"
+    ],
+    "coverage_assessment": "2 posts confirmed in 2024 target range (Sep & Oct 2024), 2 in 2025 (May & Dec 2025), 2 in 2026 (Mar & May 2026). Older posts 2021-2023 included for schema completeness but outside the 24-month backtest window."
+  },
+  "in_range_posts": {
+    "count": 6,
+    "date_range": "2024-09-26 to 2026-05-08",
+    "urls": [
+      "https://www.tradingview.com/chart/XAUUSD/9kHwrPHu-GOLD-4770-Still-On-The-Radar/",
+      "https://www.tradingview.com/chart/XAUUSD/rdMiNZHu-Gold-Spotting-Higher-Lows-Before-the-Move-Up/",
+      "https://www.tradingview.com/chart/XAUUSD/1IiltlD5-Gold-Pullback-Why-This-Doesn-t-Change-Long-Term-Structure/",
+      "https://www.tradingview.com/chart/XAUUSD/bkVYUJgK-GOLD-1H-CHART-ROUTE-MAP-UPDATE-TRADING-PLAN-FOR-THE-WEEK/",
+      "https://www.tradingview.com/chart/XAUUSD/C0aPKMZh-GOLD-4H-CHART-ROUTE-MAP-UPDATE/",
+      "https://www.tradingview.com/chart/XAUUSD/v9Ndirne-GOLD-1H-AND-4H-CHART-ROUTE-MAP-UPDATE/"
+    ]
+  }
+}
