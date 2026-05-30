@@ -2,89 +2,83 @@
 //|                                            GoldViewFX_EA.mq5     |
 //|                         GoldViewFX Level-Bounce Strategy (H1)    |
 //|                                                                    |
-//|  Data sources:                                                     |
-//|    - Intraday keys : /api/intraday-discord  (daily 05:00 VN)     |
-//|    - Turn Keys H1/H4/D1/W1 : /api/keys     (weekly, Sunday)      |
+//|  TWO ENTRY MODES:                                                  |
 //|                                                                    |
-//|  Entry logic:                                                      |
-//|    - Price within ±10pt of H1 Turn Key                            |
-//|    - EMA5 H1 fresh cross & lock through the key                   |
-//|    - Confluence score >= 4 (multi-tier source overlap)            |
-//|    - SL = 20pt beyond key, TP = next H1 Turn Key                  |
-//|    - R:R ~3.8:1  |  1%/trade  |  max 2%/day  |  max 2 trades    |
+//|  Mode A — Intraday Key (fast):                                     |
+//|    Candle body touches Intraday Key → enter immediately            |
+//|    TP = next intraday/turn key in direction                        |
+//|                                                                    |
+//|  Mode B — Turn Key (EMA5 reversion):                               |
+//|    Price already past Turn Key                                     |
+//|    Wait for EMA5 H1 to pull back and TOUCH the key                |
+//|    Enter opposite to price move, TP = the key value itself         |
+//|    e.g. price < key, EMA5 touches key from above → BUY, TP = key  |
+//|                                                                    |
+//|  Data:                                                             |
+//|    Intraday keys : /api/intraday-discord  (daily 05:30 VN)        |
+//|    Turn Keys H1/H4/D1/W1 : /api/keys     (weekly, Sunday)        |
 //+------------------------------------------------------------------+
 #property copyright "BoredStudio"
-#property version   "1.20"
+#property version   "1.30"
 #property strict
 
 #include <Trade\Trade.mqh>
 #include <Trade\PositionInfo.mqh>
 
-//--- Inputs
 input group "=== API ==="
-input string   InpApiBase          = "https://trading.boredstudio.ai";
-input string   InpEaSecret         = "";
+input string   InpApiBase           = "https://trading.boredstudio.ai";
+input string   InpEaSecret          = "";
 
-input group "=== Entry ==="
-input double   InpLevelTolerancePt = 10.0;    // Entry zone ±pt from key
-input int      InpMinConfluence    = 4;        // Min confluence score (0–10)
-input bool     InpRequireEma5Lock  = true;     // Require EMA5 H1 fresh cross
-input int      InpEma5Period       = 5;
+input group "=== Intraday Key Entry (Mode A) ==="
+input bool     InpUseIntradayMode   = true;
+input double   InpIntradayTolPt     = 5.0;   // Candle wick tolerance to touch key (pt)
+
+input group "=== Turn Key Entry (Mode B) ==="
+input bool     InpUseTurnKeyMode    = true;
+input double   InpEma5TolPt         = 3.0;   // EMA5 must be within N pt of key
+input double   InpPricePastKeyPt    = 5.0;   // Price must be at least N pt past key
+input int      InpEma5Period        = 5;
 
 input group "=== Risk ==="
-input double   InpRiskPctPerTrade  = 1.0;      // Risk % per trade
-input double   InpMaxDailyRiskPct  = 2.0;      // Max daily loss %
-input int      InpMaxTradesPerDay  = 2;
-input double   InpSlPoints         = 20.0;     // SL distance in points from key
-input bool     InpTrailToBreakeven = true;     // Move SL to BE after 1:1
+input double   InpRiskPctPerTrade   = 1.0;
+input double   InpMaxDailyRiskPct   = 2.0;
+input int      InpMaxTradesPerDay   = 2;
+input double   InpSlPoints          = 20.0;
+input bool     InpTrailToBreakeven  = true;
 
 input group "=== Misc ==="
-input int      InpMagic            = 20250530;
-input int      InpKeyRefreshMins   = 60;       // Refresh keys every N minutes
+input int      InpMagic             = 20250530;
+input int      InpKeyRefreshMins    = 60;
 
 //--- State
 CTrade        g_trade;
 CPositionInfo g_pos;
 
-// Turn Keys: updated weekly (Sunday) from /api/keys
 double   g_h1Keys[];
 double   g_h4Keys[];
 double   g_d1Keys[];
 double   g_w1Keys[];
-
-// Intraday Keys: updated daily (05:00 VN) from /api/intraday-discord
 double   g_intradayKeys[];
 
 datetime g_lastKeyFetch = 0;
 datetime g_lastBarTime  = 0;
-
 double   g_dayStartBalance = 0;
 datetime g_dayStartDate    = 0;
 int      g_tradesToday     = 0;
-
 int      g_emaHandle = INVALID_HANDLE;
 
-//+------------------------------------------------------------------+
-//| Init                                                             |
 //+------------------------------------------------------------------+
 int OnInit()
 {
    g_trade.SetExpertMagicNumber(InpMagic);
    g_trade.SetDeviationInPoints(10);
-
    g_emaHandle = iMA(_Symbol, PERIOD_H1, InpEma5Period, 0, MODE_EMA, PRICE_CLOSE);
-   if(g_emaHandle == INVALID_HANDLE) {
-      Print("[GVF EA] EMA handle failed");
-      return INIT_FAILED;
-   }
-
+   if(g_emaHandle == INVALID_HANDLE) { Print("[GVF EA] EMA handle failed"); return INIT_FAILED; }
    FetchAllKeys();
    ResetDailyCounters();
-
-   PrintFormat("[GVF EA] Init OK — H1:%d H4:%d D1:%d W1:%d Intraday:%d keys loaded",
+   PrintFormat("[GVF EA] v1.30 Init — H1:%d H4:%d D1:%d W1:%d Intraday:%d",
                ArraySize(g_h1Keys), ArraySize(g_h4Keys),
-               ArraySize(g_d1Keys), ArraySize(g_w1Keys),
-               ArraySize(g_intradayKeys));
+               ArraySize(g_d1Keys), ArraySize(g_w1Keys), ArraySize(g_intradayKeys));
    return INIT_SUCCEEDED;
 }
 
@@ -94,7 +88,7 @@ void OnDeinit(const int reason)
 }
 
 //+------------------------------------------------------------------+
-//| Tick — only acts on H1 bar close                                 |
+//| Main — acts on H1 bar close only                                 |
 //+------------------------------------------------------------------+
 void OnTick()
 {
@@ -102,147 +96,120 @@ void OnTick()
    if(barTime == g_lastBarTime) return;
    g_lastBarTime = barTime;
 
-   if(TimeCurrent() - g_lastKeyFetch > InpKeyRefreshMins * 60)
-      FetchAllKeys();
+   if(TimeCurrent() - g_lastKeyFetch > InpKeyRefreshMins * 60) FetchAllKeys();
 
-   // New day check (UTC)
-   MqlDateTime now, dayStart;
+   MqlDateTime now, ds;
    TimeToStruct(TimeCurrent(), now);
-   TimeToStruct(g_dayStartDate, dayStart);
-   if(now.day != dayStart.day || now.mon != dayStart.mon)
-      ResetDailyCounters();
+   TimeToStruct(g_dayStartDate, ds);
+   if(now.day != ds.day || now.mon != ds.mon) ResetDailyCounters();
 
-   // Daily loss limit
-   double balance  = AccountInfoDouble(ACCOUNT_BALANCE);
-   double dailyPnL = balance - g_dayStartBalance;
-   if(dailyPnL <= -(g_dayStartBalance * InpMaxDailyRiskPct / 100.0)) {
-      Print("[GVF EA] Daily limit hit — no more trades today");
-      return;
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   if((balance - g_dayStartBalance) <= -(g_dayStartBalance * InpMaxDailyRiskPct / 100.0)) {
+      Print("[GVF EA] Daily limit hit"); return;
    }
-
    if(g_tradesToday >= InpMaxTradesPerDay) return;
+   if(HasOpenPosition()) { CheckBreakevenTrail(); return; }
 
-   if(HasOpenPosition()) {
-      CheckBreakevenTrail();
-      return;
-   }
-
-   if(ArraySize(g_h1Keys) == 0) return;
-
+   double pt      = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
    double bid     = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double ask     = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   double pt      = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
    double dayOpen = GetDayOpen();
 
-   // EMA5 H1 last two closed bars
-   double emaBuf[2];
-   if(CopyBuffer(g_emaHandle, 0, 1, 2, emaBuf) < 2) return;
-   double emaPrev = emaBuf[0]; // bar[2]
-   double emaCurr = emaBuf[1]; // bar[1]
+   // EMA5 last closed bar
+   double emaBuf[1];
+   if(CopyBuffer(g_emaHandle, 0, 1, 1, emaBuf) < 1) return;
+   double ema5 = emaBuf[0];
 
-   // Find nearest H1 key within tolerance
-   double nearestKey = 0;
-   double bestDist   = 9e9;
-   for(int i = 0; i < ArraySize(g_h1Keys); i++) {
-      double d = MathAbs(bid - g_h1Keys[i]);
-      if(d < bestDist) { bestDist = d; nearestKey = g_h1Keys[i]; }
+   // Last closed H1 candle OHLC
+   MqlRates h1[];
+   if(CopyRates(_Symbol, PERIOD_H1, 1, 1, h1) < 1) return;
+
+   bool bullBias = (bid > dayOpen);
+   bool bearBias = (bid < dayOpen);
+
+   // ── MODE A: Intraday Key — candle touch ───────────────────────
+   if(InpUseIntradayMode && ArraySize(g_intradayKeys) > 0) {
+      for(int i = 0; i < ArraySize(g_intradayKeys); i++) {
+         double key = g_intradayKeys[i];
+         bool candleTouchBuy  = (h1[0].low  <= key + InpIntradayTolPt * pt) && (h1[0].close > key);
+         bool candleTouchSell = (h1[0].high >= key - InpIntradayTolPt * pt) && (h1[0].close < key);
+
+         if(bullBias && candleTouchBuy) {
+            double tp = FindNextKey(key, 1);
+            if(tp == 0) continue;
+            double lots = CalcLots(InpSlPoints * pt, InpRiskPctPerTrade);
+            double sl   = key - InpSlPoints * pt;
+            PrintFormat("[GVF EA] MODE-A BUY Intraday key=%.2f sl=%.2f tp=%.2f lots=%.2f", key, sl, tp, lots);
+            if(g_trade.Buy(lots, _Symbol, ask, sl, tp, "GVF-intraday")) { g_tradesToday++; return; }
+         }
+         if(bearBias && candleTouchSell) {
+            double tp = FindNextKey(key, -1);
+            if(tp == 0) continue;
+            double lots = CalcLots(InpSlPoints * pt, InpRiskPctPerTrade);
+            double sl   = key + InpSlPoints * pt;
+            PrintFormat("[GVF EA] MODE-A SELL Intraday key=%.2f sl=%.2f tp=%.2f lots=%.2f", key, sl, tp, lots);
+            if(g_trade.Sell(lots, _Symbol, bid, sl, tp, "GVF-intraday")) { g_tradesToday++; return; }
+         }
+      }
    }
-   if(nearestKey == 0 || bestDist > InpLevelTolerancePt * pt) return;
 
-   bool bullBias    = (bid > dayOpen);
-   bool bearBias    = (bid < dayOpen);
-   bool ema5CrossUp = (emaPrev <= nearestKey && emaCurr > nearestKey);
-   bool ema5CrossDn = (emaPrev >= nearestKey && emaCurr < nearestKey);
+   // ── MODE B: Turn Key — EMA5 reversion ────────────────────────
+   // BUY: price already dropped BELOW key, EMA5 now touches key from above → enter BUY, TP = key
+   // SELL: price already rose ABOVE key,   EMA5 now touches key from below → enter SELL, TP = key
+   if(InpUseTurnKeyMode && ArraySize(g_h1Keys) > 0) {
+      for(int i = 0; i < ArraySize(g_h1Keys); i++) {
+         double key     = g_h1Keys[i];
+         double ema5Dist = MathAbs(ema5 - key);
+         if(ema5Dist > InpEma5TolPt * pt) continue; // EMA5 not near key yet
 
-   if(InpRequireEma5Lock && !ema5CrossUp && !ema5CrossDn) return;
+         bool priceBelow = (bid < key - InpPricePastKeyPt * pt); // price already past key downward
+         bool priceAbove = (bid > key + InpPricePastKeyPt * pt); // price already past key upward
+         bool ema5Above  = (ema5 >= key);                         // EMA5 at/above key (touching from above)
+         bool ema5Below  = (ema5 <= key);                         // EMA5 at/below key (touching from below)
 
-   int score = ComputeConfluence(bid, nearestKey, dayOpen, emaCurr);
-   if(score < InpMinConfluence) {
-      PrintFormat("[GVF EA] Key %.2f score=%d < %d, skip", nearestKey, score, InpMinConfluence);
-      return;
+         // BUY: price below key, EMA5 touches key from above
+         if(priceBelow && ema5Above) {
+            double lots = CalcLots(InpSlPoints * pt, InpRiskPctPerTrade);
+            double sl   = bid - InpSlPoints * pt;
+            double tp   = key; // return to key
+            PrintFormat("[GVF EA] MODE-B BUY TurnKey=%.2f ema5=%.2f price=%.2f sl=%.2f tp=%.2f lots=%.2f",
+                        key, ema5, bid, sl, tp, lots);
+            if(g_trade.Buy(lots, _Symbol, ask, sl, tp, "GVF-turnkey")) { g_tradesToday++; return; }
+         }
+
+         // SELL: price above key, EMA5 touches key from below
+         if(priceAbove && ema5Below) {
+            double lots = CalcLots(InpSlPoints * pt, InpRiskPctPerTrade);
+            double sl   = bid + InpSlPoints * pt;
+            double tp   = key; // return to key
+            PrintFormat("[GVF EA] MODE-B SELL TurnKey=%.2f ema5=%.2f price=%.2f sl=%.2f tp=%.2f lots=%.2f",
+                        key, ema5, bid, sl, tp, lots);
+            if(g_trade.Sell(lots, _Symbol, bid, sl, tp, "GVF-turnkey")) { g_tradesToday++; return; }
+         }
+      }
    }
-
-   double tpKey = FindNextH1Key(nearestKey, bullBias ? 1 : -1);
-   if(tpKey == 0) return;
-
-   double lots = CalcLots(InpSlPoints * pt, InpRiskPctPerTrade);
-   if(lots <= 0) return;
-
-   bool doLong  = bullBias && (InpRequireEma5Lock ? ema5CrossUp : emaCurr > nearestKey);
-   bool doShort = bearBias && (InpRequireEma5Lock ? ema5CrossDn : emaCurr < nearestKey);
-
-   if(doLong) {
-      double sl = nearestKey - InpSlPoints * pt;
-      PrintFormat("[GVF EA] BUY @ %.2f | key=%.2f SL=%.2f TP=%.2f score=%d lots=%.2f",
-                  ask, nearestKey, sl, tpKey, score, lots);
-      if(g_trade.Buy(lots, _Symbol, ask, sl, tpKey, "GVF")) g_tradesToday++;
-   }
-   else if(doShort) {
-      double sl = nearestKey + InpSlPoints * pt;
-      PrintFormat("[GVF EA] SELL @ %.2f | key=%.2f SL=%.2f TP=%.2f score=%d lots=%.2f",
-                  bid, nearestKey, sl, tpKey, score, lots);
-      if(g_trade.Sell(lots, _Symbol, bid, sl, tpKey, "GVF")) g_tradesToday++;
-   }
-}
-
-//+------------------------------------------------------------------+
-//| Confluence Score (0–10)                                          |
-//|                                                                    |
-//|  +1  Price on correct side of Day Open                           |
-//|  +1  EMA5 aligned with direction                                 |
-//|  +1  Key in H1 Turn Keys  (always true if we got here)           |
-//|  +1  Key also in H4 Turn Keys                                    |
-//|  +1  Key also in D1 Turn Keys                                    |
-//|  +1  Key also in W1 Turn Keys                                    |
-//|  +2  Key also in Intraday Discord keys (GVF daily confirmation)  |
-//|  +1  Price distance 5–10pt (clean touch, not overextended)       |
-//+------------------------------------------------------------------+
-int ComputeConfluence(double price, double key, double dayOpen, double ema5)
-{
-   int    score  = 0;
-   double pt     = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
-   bool   bull   = (price > key);
-   double dist   = MathAbs(price - key);
-   double tol    = 5.0 * pt;
-
-   if(bull  && price > dayOpen) score++;
-   if(!bull && price < dayOpen) score++;
-
-   if(bull  && ema5 > key) score++;
-   if(!bull && ema5 < key) score++;
-
-   // Turn Key source overlap
-   score++;                                              // H1: always (entry condition)
-   if(IsKeyIn(key, g_h4Keys, tol)) score++;             // H4 confluence
-   if(IsKeyIn(key, g_d1Keys, tol)) score++;             // D1 confluence
-   if(IsKeyIn(key, g_w1Keys, tol)) score++;             // W1 confluence
-
-   // Intraday Discord confirmation (strongest signal: GVF posted it today)
-   if(IsKeyIn(key, g_intradayKeys, tol)) score += 2;
-
-   // Clean distance from key
-   if(dist > 5.0 * pt && dist < InpLevelTolerancePt * pt) score++;
-
-   return score;
 }
 
 //+------------------------------------------------------------------+
 //| Helpers                                                          |
 //+------------------------------------------------------------------+
-bool IsKeyIn(double key, const double &arr[], double tol)
-{
-   for(int i = 0; i < ArraySize(arr); i++)
-      if(MathAbs(arr[i] - key) <= tol) return true;
-   return false;
-}
 
-double FindNextH1Key(double key, int dir)
+// Find next key in direction across ALL sources (intraday + h1 turn)
+double FindNextKey(double fromKey, int dir)
 {
    double best = 0, bestDist = 9e9;
-   for(int i = 0; i < ArraySize(g_h1Keys); i++) {
-      double diff = g_h1Keys[i] - key;
-      if(dir > 0 && diff > 0 && diff < bestDist) { bestDist = diff; best = g_h1Keys[i]; }
-      if(dir < 0 && diff < 0 && -diff < bestDist) { bestDist = -diff; best = g_h1Keys[i]; }
+   // Merge h1 turn + intraday into search
+   int total = ArraySize(g_h1Keys) + ArraySize(g_intradayKeys);
+   double merged[];
+   ArrayResize(merged, total);
+   int idx = 0;
+   for(int i = 0; i < ArraySize(g_h1Keys);      i++) merged[idx++] = g_h1Keys[i];
+   for(int i = 0; i < ArraySize(g_intradayKeys); i++) merged[idx++] = g_intradayKeys[i];
+
+   for(int i = 0; i < total; i++) {
+      double diff = merged[i] - fromKey;
+      if(dir > 0 && diff > 0.5 && diff < bestDist) { bestDist = diff; best = merged[i]; }
+      if(dir < 0 && diff < -0.5 && -diff < bestDist) { bestDist = -diff; best = merged[i]; }
    }
    return best;
 }
@@ -254,10 +221,10 @@ double CalcLots(double slDist, double riskPct)
    double tickVal  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
    double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
    if(tickVal <= 0 || tickSize <= 0 || slDist <= 0) return 0;
-   double lots    = riskAmt / (slDist / tickSize * tickVal);
-   double minLot  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   double maxLot  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
-   double step    = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
+   double lots = riskAmt / (slDist / tickSize * tickVal);
+   double minLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   double maxLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
+   double step   = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
    return MathMax(minLot, MathMin(maxLot, MathFloor(lots / step) * step));
 }
 
@@ -284,12 +251,10 @@ void CheckBreakevenTrail()
       if(g_pos.Symbol() != _Symbol || g_pos.Magic() != InpMagic) continue;
       double open = g_pos.PriceOpen(), sl = g_pos.StopLoss(), tp = g_pos.TakeProfit();
       if(g_pos.PositionType() == POSITION_TYPE_BUY) {
-         double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-         if((bid - open) / pt >= InpSlPoints && sl < open)
+         if((SymbolInfoDouble(_Symbol, SYMBOL_BID) - open) / pt >= InpSlPoints && sl < open)
             g_trade.PositionModify(g_pos.Ticket(), open + pt, tp);
       } else {
-         double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-         if((open - ask) / pt >= InpSlPoints && sl > open)
+         if((open - SymbolInfoDouble(_Symbol, SYMBOL_ASK)) / pt >= InpSlPoints && sl > open)
             g_trade.PositionModify(g_pos.Ticket(), open - pt, tp);
       }
    }
@@ -303,7 +268,7 @@ void ResetDailyCounters()
 }
 
 //+------------------------------------------------------------------+
-//| Key Fetching                                                     |
+//| Key fetching                                                     |
 //+------------------------------------------------------------------+
 void FetchAllKeys()
 {
@@ -314,26 +279,26 @@ void FetchAllKeys()
 
 void FetchTurnKeys()
 {
-   char postData[], result[];
-   string headers = "Content-Type: application/json\r\n", resHeaders;
-   int status = WebRequest("GET", InpApiBase + "/api/keys", headers, 5000, postData, result, resHeaders);
-   if(status != 200) { PrintFormat("[GVF EA] /api/keys failed: %d", status); return; }
+   char post[], result[];
+   string headers = "Content-Type: application/json\r\n", resH;
+   int s = WebRequest("GET", InpApiBase + "/api/keys", headers, 5000, post, result, resH);
+   if(s != 200) { PrintFormat("[GVF EA] /api/keys HTTP %d", s); return; }
    string json = CharArrayToString(result);
    ParseJsonArray(json, "\"h1Turn\"",    g_h1Keys);
    ParseJsonArray(json, "\"h4Turn\"",    g_h4Keys);
    ParseJsonArray(json, "\"dailyTurn\"", g_d1Keys);
    ParseJsonArray(json, "\"weekTurn\"",  g_w1Keys);
-   PrintFormat("[GVF EA] Turn Keys — H1:%d H4:%d D1:%d W1:%d",
+   PrintFormat("[GVF EA] TurnKeys H1:%d H4:%d D1:%d W1:%d",
                ArraySize(g_h1Keys), ArraySize(g_h4Keys),
                ArraySize(g_d1Keys), ArraySize(g_w1Keys));
 }
 
 void FetchIntradayKeys()
 {
-   char postData[], result[];
-   string headers = "Content-Type: application/json\r\n", resHeaders;
-   int status = WebRequest("GET", InpApiBase + "/api/intraday-discord", headers, 5000, postData, result, resHeaders);
-   if(status != 200) { PrintFormat("[GVF EA] /api/intraday-discord failed: %d", status); return; }
+   char post[], result[];
+   string headers = "Content-Type: application/json\r\n", resH;
+   int s = WebRequest("GET", InpApiBase + "/api/intraday-discord", headers, 5000, post, result, resH);
+   if(s != 200) { PrintFormat("[GVF EA] /api/intraday-discord HTTP %d", s); return; }
    string json = CharArrayToString(result);
    ParseJsonArray(json, "\"levels\"", g_intradayKeys);
    PrintFormat("[GVF EA] Intraday Discord keys: %d", ArraySize(g_intradayKeys));
@@ -342,10 +307,9 @@ void FetchIntradayKeys()
 void ParseJsonArray(const string &json, const string &key, double &out[])
 {
    ArrayResize(out, 0);
-   int kPos = StringFind(json, key);
-   if(kPos < 0) return;
-   int s = StringFind(json, "[", kPos);
-   int e = StringFind(json, "]", s);
+   int kp = StringFind(json, key);
+   if(kp < 0) return;
+   int s = StringFind(json, "[", kp), e = StringFind(json, "]", s);
    if(s < 0 || e < 0) return;
    string parts[];
    int n = StringSplit(StringSubstr(json, s + 1, e - s - 1), ',', parts);
