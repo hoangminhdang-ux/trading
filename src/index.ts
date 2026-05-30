@@ -452,7 +452,7 @@ app.post('/api/intraday-discord/sync', async (c) => {
 export default {
   fetch: app.fetch,
   async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
-    if (event.cron === '30 21 * * *') {
+    if (event.cron === '30 22 * * *') {
       await fetchDiscordIntradayLevels(env)
     } else {
       await snapshotSheetKeys(env)

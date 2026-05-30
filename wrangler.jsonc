@@ -18,11 +18,11 @@
   },
 
   "triggers": {
-    "crons": ["0 1 * * *", "30 21 * * *"]
+    "crons": ["0 1 * * *", "30 22 * * *"]
   },
 
-  // Cron: 0 1 * * *  = 08:00 VN (UTC+7) — snapshot sheet keys
-  // Cron: 30 21 * * * = 04:30 VN next day — fetch Discord intraday levels (posted ~21:08–21:25 UTC)
+  // Cron: 0 1 * * *   = 08:00 VN (UTC+7) — snapshot sheet keys (Turn Keys H1/H4/D1/W1, updated Sunday)
+  // Cron: 30 22 * * * = 05:30 VN          — fetch Discord intraday levels (GVF posts ~21:08–21:25 UTC)
 
   // Custom domain: set in Cloudflare Dashboard → Workers & Pages → trading-api → Settings → Custom Domains → trading.boredstudio.ai
 
