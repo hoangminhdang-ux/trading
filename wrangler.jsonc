@@ -13,11 +13,16 @@
     }
   ],
 
-  "triggers": {
-    "crons": ["0 1 * * *"]
+  "ai": {
+    "binding": "AI"
   },
 
-  // Cron: 0 1 * * * = 08:00 Vietnam (UTC+7) daily — snapshot sheet keys to DB
+  "triggers": {
+    "crons": ["0 1 * * *", "30 21 * * *"]
+  },
+
+  // Cron: 0 1 * * *  = 08:00 VN (UTC+7) — snapshot sheet keys
+  // Cron: 30 21 * * * = 04:30 VN next day — fetch Discord intraday levels (posted ~21:08–21:25 UTC)
 
   // Custom domain: set in Cloudflare Dashboard → Workers & Pages → trading-api → Settings → Custom Domains → trading.boredstudio.ai
 
