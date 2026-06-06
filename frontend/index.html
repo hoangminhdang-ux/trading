@@ -4268,12 +4268,48 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
       probability: { sbull: 5, bull: 20, neut: 25, bear: 35, sbear: 15 },
       summary: `<strong>EoW $4,360 (+0.8% vs $4,327). Oversold bounce within a confirmed downtrend - capped, CPI-binary.</strong> Gold enters at the 2026 low after the 172k NFP shock (2x consensus) drove a hawkish repricing - markets now price a year-end hike. <strong>Trend is down, $4,370 floor broke decisively.</strong> Mon $4,345 oversold bounce off SMA200 ($4,308). Tue $4,360 pre-CPI drift, capped at broken-support flip $4,400. <strong>Wed CPI binary</strong> - wide $4,260-$4,410, close $4,330 (hot-lean base case). Thu $4,350 PPI. Fri $4,360. <strong>Bear tail (~35%+15%):</strong> hot CPI = $4,260 break, then $4,200/$4,130 cascade below SMA200. <strong>Bull tail (~25%):</strong> cool CPI + Iran flare = $4,440 relief. <strong>Last week I (and the whole pack) leaned bullish $4,580 and got crushed - actual $4,327, off ~$250. The structural-floor thesis failed. This week I'm trend-aligned bearish.</strong>`,
       probBadge: "Oversold-bounce-in-downtrend"
+    },
+    {
+      key: "gemini",
+      name: "Gemini",
+      label: "Google - 2.5 Pro Thinking",
+      cssVar: "--gemini-c",
+      logoBg: "rgba(66,133,244,0.15)",
+      daily: [
+        { price: 4325, low: 4308, high: 4345 },
+        { price: 4338, low: 4316, high: 4352 },
+        { price: 4374, low: 4292, high: 4395 },
+        { price: 4402, low: 4355, high: 4418 },
+        { price: 4391, low: 4370, high: 4425 }
+      ],
+      bias: "Mildly Bullish",
+      probability: { sbull: 8, bull: 32, neut: 30, bear: 22, sbear: 8 },
+      summary: `<strong>EoW $4,391 (+1.5% vs $4,327). CPI-day washout-and-recover, then strong finish.</strong> Mon $4,325 flat at SMA200, Tue $4,338 coil. <strong>Wed CPI: deep washout to $4,292 (below SMA200 intraday) then recovers to close $4,374</strong> - a bear-trap reversal on the binary. Thu $4,402 follow-through, Fri $4,391. <strong>Counter to Claude's bear read</strong> - Gemini sees the CPI dip as the wick that gets bought, not a breakdown. Tests $4,308 SMA200 three times early but never closes below. <strong>$31 above Claude on EoW; the Wed CPI read is the key split - Claude $4,330 hot-lean, Gemini $4,374 washout-recover.</strong>`,
+      probBadge: "CPI washout-and-recover"
+    },
+    {
+      key: "chatgpt",
+      name: "ChatGPT",
+      label: "OpenAI - GPT-5",
+      cssVar: "--gpt-c",
+      logoBg: "rgba(5,150,105,0.12)",
+      daily: [
+        { price: 4350, low: 4295, high: 4385 },
+        { price: 4385, low: 4320, high: 4410 },
+        { price: 4415, low: 4350, high: 4445 },
+        { price: 4440, low: 4370, high: 4475 },
+        { price: 4465, low: 4400, high: 4500 }
+      ],
+      bias: "Bullish",
+      probability: { sbull: 20, bull: 38, neut: 25, bear: 12, sbear: 5 },
+      summary: `<strong>EoW $4,465 (+3.2% vs $4,327). Most bullish of the pack - clean V-recovery ladder, no CPI breakdown.</strong> Escalating daily: $4,350 to $4,385 to $4,415 to $4,440 to $4,465. <strong>Prices a full bounce-back from the NFP crash</strong> - reads $4,327 as capitulation low, reclaims the broken $4,370-$4,400 zone by Tuesday and never looks back. <strong>Wed CPI = continuation up</strong> ($4,415), counter to Claude's breakdown read. Fri $4,465 reclaims toward SMA21 ($4,520) approach. <strong>$105 above Claude, $74 above Gemini on EoW.</strong> The clearest "the crash was the bottom" voice - if right, $4,327 marks a V-reversal and the dip-buyers win.`,
+      probBadge: "V-recovery ladder"
     }
   ],
   VERDICT: {
-    overallBiasLabel: "Bearish",
-    overallBiasClass: "bias-bear",
-    text: "<strong>Claude standalone - full pack to be added when other models report.</strong> Claude prices an oversold-bounce-within-a-downtrend week ($4,360 EoW, +0.8% vs $4,327 close). <strong>Core thesis:</strong> the hot-NFP shock (172k vs 85k) drove gold to its 2026 low and triggered a year-end-hike repricing - the structural-floor thesis that held all of 2026 failed when $4,370 broke decisively. Trend is now down. <strong>Structure:</strong> the week is CPI-binary on Wednesday into a market already pricing a hike. SMA200 (~$4,308) is the critical line - it held the entire 2026 uptrend, and a weekly close below it is a structural regime change toward $4,000 (Goldman's bear case). <strong>Path:</strong> oversold bounce early off SMA200, capped at the broken-support flip ($4,370-$4,400), then CPI-driven. <strong>Bear tail (~50% combined):</strong> hot CPI = $4,260 break, $4,200/$4,130 cascade. <strong>Bull tail (~25%):</strong> cool CPI + Iran flare = $4,440 relief bounce. <strong>Trade setup:</strong> short $4,400-$4,420 rallies with $4,445 stop targeting $4,330 (trend-aligned, 1/2 size) - oversold scalp long $4,310-$4,320 with $4,285 stop targeting $4,390 (1/4 size) - flat through CPI. <strong>Honest note: last week the entire pack including me leaned bullish ($4,580) and was crushed by ~$250 when gold closed $4,327. The dip-buy regime is over; this is now a hawkish-repricing downtrend until proven otherwise.</strong>"
+    overallBiasLabel: "Mixed",
+    overallBiasClass: "bias-mixed",
+    text: "<strong>3 models reporting - pack splits 1 bear (Claude) vs 2 bulls (Gemini, ChatGPT). Consensus EoW $4,405 (+$78 vs $4,327 Friday close, +1.8%), spread $105 from $4,360 (Claude) to $4,465 (ChatGPT).</strong> <strong>All 3 agree on one thing:</strong> $4,327 holds as a near-term low and gold bounces - none price a clean break below the $4,308 SMA200 as the base case. <strong>But the magnitude and shape split widens:</strong> <strong>Claude (bear):</strong> oversold bounce capped within a downtrend, $4,360 EoW, hot-CPI-lean with breakdown risk a ~35% tail. <strong>Gemini (mild bull):</strong> CPI-day washout to $4,292 then bear-trap recovery, $4,391 EoW. <strong>ChatGPT (strong bull):</strong> clean V-recovery ladder, no CPI dip at all, $4,465 EoW - reads the crash as the bottom. <strong>The Wednesday CPI read is the fulcrum:</strong> Claude $4,330 (weak close, breakdown risk), Gemini $4,374 (washout-recover), ChatGPT $4,415 (continuation up). $85 spread on the binary day's close. <strong>Friday divergence is widest:</strong> Claude $4,360, Gemini $4,391, ChatGPT $4,465 - $105 spread, reflecting whether the week is a capped bounce (Claude), a recovery (Gemini), or a full V (ChatGPT). <strong>Probability picture:</strong> Claude downside-skewed (Upside 25%), Gemini balanced-bull (Upside 40%), ChatGPT clearly bull (Upside 58%). Pack tilts mildly bullish 2-to-1 but Claude is the lone voice respecting the hawkish-repricing downtrend. <strong>Critical level $4,308 (SMA200):</strong> holds in all 3 base cases - the question is how hard it bounces. <strong>Bull tail:</strong> cool CPI + Iran flare = $4,470-$4,500 (ChatGPT base). <strong>Bear tail (Claude ~35%):</strong> hot CPI = $4,260 break, $4,200 cascade. <strong>Waiting on: DeepSeek, Grok, Qwen.</strong>"
   }
 };
 ASSETS.xauusd.weeks["2026-06-08"].VERDICT.tbd = true;
