@@ -2877,7 +2877,41 @@ function aggProbability() {
   }
   return agg;
 }
+// Sync the Forecast tab's SMA/EMA rows to the LIVE Moving Averages box
+// (maData.D) that loads from the internal API. This keeps the forecast's
+// support/resistance levels matched to real data instead of stale constants.
+// Matches by MA name (EMA5, SMA21, SMA50, SMA100, SMA200) in MARKET_DATA.support
+// and .indicators. Falls back to whatever was hardcoded if live data is absent.
+function syncForecastMAsFromLive() {
+  const liveD = (typeof maData !== "undefined" && maData.D) ? maData.D : null;
+  if (!liveD || !liveD.length) return;
+  const livePrice = (typeof LATEST_PRICE !== "undefined" && isFinite(LATEST_PRICE)) ? LATEST_PRICE : null;
+  const MA_NAMES = ["EMA5", "SMA21", "SMA50", "SMA100", "SMA200"];
+  const applyTo = (arr) => {
+    if (!arr) return;
+    arr.forEach((row) => {
+      if (!MA_NAMES.includes(row.name)) return;
+      const live = liveD.find((m) => m.name === row.name);
+      if (!live || live.value === "\u2014") return;
+      row.value = "$" + live.value;       // live.value is already formatted e.g. "4,427"
+      row.tf = "D";
+      // Re-derive R/S kind + signal from where price sits vs the MA
+      const maNum = parseFloat(String(live.value).replace(/[^0-9.]/g, ""));
+      if (livePrice != null && isFinite(maNum)) {
+        const above = livePrice >= maNum;
+        row.kind = above ? "S" : "R";       // MA below price = support, above = resistance
+        row.sig = live.sig;
+        // Forecast tab CSS styles sig-sell/buy/sbuy/neut but not sig-ssell;
+        // normalize the live strong-sell class so the badge stays styled.
+        row.sigClass = live.sigClass === "sig-ssell" ? "sig-sell" : live.sigClass;
+      }
+    });
+  };
+  applyTo(MARKET_DATA.support);
+  applyTo(MARKET_DATA.indicators);
+}
 function renderOverview() {
+  syncForecastMAsFromLive();
   const fPct = pctFrom(weekForecast, PREV_CLOSE);
   const pctColor = fPct >= 0 ? "var(--green)" : "var(--red)";
   document.getElementById("js-overview-summary").innerHTML = `<span class="ov-kv ov-date"><strong>${WEEK.range}</strong></span><span class="ov-sep">·</span><span class="ov-kv">P-Close: <strong>${fmt(PREV_CLOSE)}</strong></span><span class="ov-sep">·</span><span class="ov-kv">F-Close: <strong>${fmt(weekForecast)}</strong> <span style="color:${pctColor};font-weight:700">(${pctStr(fPct)})</span></span>`;
@@ -4133,26 +4167,26 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
   SIGNALS: {
     claude: {
       dayTactics: [
-        { mode: "long", label: "\ud83d\udfe2 Scalp oversold bounce", bias: "Bear bounce", note: "RSI deeply oversold after the NFP crash. Buy $4,310-$4,320 (SMA200 zone) with $4,285 stop, targeting $4,390. Counter-trend scalp only - momentum is down." },
-        { mode: "short", label: "\ud83d\udd34 Fade $4,400", bias: "Bear", note: "Broken support $4,370-$4,400 now resistance. Short rallies into $4,400-$4,420 with $4,445 stop, targeting $4,330. Trend-aligned." },
-        { mode: "wait", label: "\ud83d\udeab Wait CPI", bias: "Neutral", note: "Wed CPI is the week's binary into a market already pricing a year-end hike. No new positions Wed before 8:30 AM ET. Hot = $4,260 break; cool = $4,420 relief." },
-        { mode: "follow", label: "\u21aa CPI follow trade", bias: "Data-driven", note: "Hot CPI (>0.4% MoM core) = hike narrative cements = short $4,360 toward $4,260, then $4,200. Cool CPI (<0.2%) = relief = long $4,330 toward $4,440." }
+        { mode: "long", label: "\ud83d\udfe2 Scalp oversold bounce", bias: "Bear bounce", note: "RSI deeply oversold after the NFP crash. Buy $4,310-$4,330 (just above the 2026 low) with $4,295 stop, targeting $4,400. Counter-trend scalp only - momentum is down and price is below SMA200." },
+        { mode: "short", label: "\ud83d\udd34 Fade $4,420", bias: "Bear", note: "SMA200 ($4,427) is now overhead resistance after the breakdown. Short rallies into $4,410-$4,430 with $4,455 stop, targeting $4,340. Trend-aligned - selling into the 200-day from below." },
+        { mode: "wait", label: "\ud83d\udeab Wait CPI", bias: "Neutral", note: "Wed CPI is the week's binary into a market already pricing a year-end hike. No new positions Wed before 8:30 AM ET. Hot = $4,260 break; cool = $4,427 SMA200 retest." },
+        { mode: "follow", label: "\u21aa CPI follow trade", bias: "Data-driven", note: "Hot CPI (>0.4% MoM core) = hike narrative cements = short $4,360 toward $4,260, then $4,200. Cool CPI (<0.2%) = relief = long $4,330 toward the $4,427 SMA200 reclaim test." }
       ],
       rules: [
-        "Bear invalidation: H4 close above $4,445 + reclaim $4,470 = oversold bounce extending, flat shorts, reassess.",
-        "Bear confirmation: Daily close below $4,300 (SMA200) = the last major support gone, opens $4,200 then $4,130.",
+        "Bear invalidation: Daily CLOSE back above SMA200 ($4,427) = the breakdown is rejected, reclaim achieved, flat shorts and reassess for a base.",
+        "Bear confirmation: hold below $4,427 (SMA200) + close below $4,300 = downtrend extends, opens $4,200 then $4,130.",
         "No new entries Wed before 8:30 AM ET (CPI). No new entries Thu before 8:30 AM ET (PPI).",
-        "Critical line: SMA200 ~$4,308. This held the entire 2026 uptrend. A weekly close below it is a structural regime change toward $4,000 (Goldman's bear case).",
-        "Tail risk down: hot CPI + Iran de-escalation = full hawkish = $4,200 break, $4,130 cascade.",
-        "Tail risk up: cool CPI + Iran flare (warning shots already fired at US warships) = dual relief = $4,440-$4,470 snap bounce.",
-        "Position sizing: shorts (trend-aligned) = 1/2 size - oversold scalps = 1/4 - hold nothing through CPI unsized.",
-        "Honest note: last week the whole pack (including me at $4,580) leaned bullish and got crushed - gold closed $4,327 on the 172k NFP shock, off ~$250 from my call. The structural-floor thesis failed: $4,370 broke decisively. This week I'm trend-aligned bearish, respecting that we're now in a hawkish-repricing downtrend, not a dip-buy regime."
+        "Critical line: SMA200 ~$4,427. Gold has now broken BELOW it for the first time in the 2026 uptrend - this is already a structural regime shift. The 200-day is overhead resistance; reclaiming it on a daily close is the bulls' burden of proof.",
+        "Tail risk down: hot CPI + Iran de-escalation = full hawkish = $4,260 break, $4,200/$4,130 cascade.",
+        "Tail risk up: cool CPI + Iran flare (warning shots already fired at US warships) = dual relief = $4,427 SMA200 retest, reclaim attempt.",
+        "Position sizing: shorts (trend-aligned, selling into SMA200 from below) = 1/2 size - oversold scalps = 1/4 - hold nothing through CPI unsized.",
+        "Honest note: last week the whole pack (including me at $4,580) leaned bullish and got crushed - gold closed $4,327 on the 172k NFP shock, off ~$250. And I initially had SMA200 stale at $4,308 - it's actually $4,427, meaning price is already ~$100 BELOW the 200-day. That's more bearish, not less: the structural break already happened. This week I'm trend-aligned bearish, treating $4,427 as resistance to reclaim."
       ]
     }
   },
   MARKET_DATA: {
     support: [
-      { kind: "S", name: "SMA200", tf: "D", value: "$4,308", sig: "Buy", sigClass: "sig-buy" },
+      { kind: "R", name: "SMA200", tf: "D", value: "$4,427", sig: "Sell", sigClass: "sig-sell" },
       { kind: "R", name: "EMA5", tf: "D", value: "$4,420", sig: "Sell", sigClass: "sig-sell" },
       { kind: "R", name: "SMA21", tf: "D", value: "$4,520", sig: "Strong Sell", sigClass: "sig-sell" },
       { kind: "R", name: "SMA50", tf: "D", value: "$4,640", sig: "Strong Sell", sigClass: "sig-sell" },
@@ -4161,7 +4195,7 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
     indicators: [
       { kind: "S", name: "2026 low", tf: "D", value: "$4,327", sig: "Buy", sigClass: "sig-buy" },
       { kind: "S", name: "Next support", tf: "D", value: "$4,200", sig: "Buy", sigClass: "sig-buy" },
-      { kind: "R", name: "Broken support flip", tf: "D", value: "$4,370-$4,400", sig: "Sell", sigClass: "sig-sell" },
+      { kind: "R", name: "SMA200 reclaim line", tf: "D", value: "$4,427", sig: "Sell", sigClass: "sig-sell" },
       { kind: "~", name: "RSI 14", tf: "D", value: "29", sig: "Buy", sigClass: "sig-buy" },
       { kind: "R", name: "MACD", tf: "D", value: "Bear extend", sig: "Sell", sigClass: "sig-sell" }
     ],
@@ -4169,7 +4203,7 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
       { html: "<strong>\u26a1 CPI Wed Jun 10</strong> - the week's binary into a market already pricing a year-end Fed HIKE - hot confirms, cool relieves" },
       { html: "<strong>Hot NFP shock (172k vs 85k)</strong> - May jobs nearly 2x consensus, April revised up - drove gold to 2026 low, erased YTD gains" },
       { html: "<strong>Year-end HIKE now priced</strong> - markets shifted from hold to pricing a quarter-point increase by Dec - real yields surging" },
-      { html: "<strong>SMA200 ~$4,308 critical</strong> - held the entire 2026 uptrend - weekly close below = structural regime change toward $4,000" },
+      { html: "<strong>Price now BELOW SMA200 ($4,427)</strong> - gold broke under the 200-day for the first time in the 2026 uptrend - $4,427 is now overhead resistance, not support" },
       { html: "<strong>Iran tensions live</strong> - warning shots fired at US warships in Gulf of Oman - residual safe-haven floor, oil-inflation wildcard" },
       { html: "<strong>FOMC Jun 16-17</strong> - Warsh's first meeting as Chair - next week's CPI shapes the hawkish setup" }
     ]
@@ -4233,7 +4267,7 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
         delta24h: 18,
         deadline: "Jun 12, 2026",
         volume: "$2.6M",
-        impact: "The week's key technical line. Yes (close below SMA200) = structural break, opens $4,200/$4,130. No = floor holds, oversold bounce.",
+        impact: "The week's key downside line. Yes (close below $4,300) = the post-NFP breakdown extends toward $4,200/$4,130. No = the $4,327 low holds, oversold bounce toward the $4,427 SMA200.",
         yesPrice: 4250,
         noPrice: 4370
       }
@@ -4266,7 +4300,7 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
       ],
       bias: "Bearish",
       probability: { sbull: 5, bull: 20, neut: 25, bear: 35, sbear: 15 },
-      summary: `<strong>EoW $4,360 (+0.8% vs $4,327). Oversold bounce within a confirmed downtrend - capped, CPI-binary.</strong> Gold enters at the 2026 low after the 172k NFP shock (2x consensus) drove a hawkish repricing - markets now price a year-end hike. <strong>Trend is down, $4,370 floor broke decisively.</strong> Mon $4,345 oversold bounce off SMA200 ($4,308). Tue $4,360 pre-CPI drift, capped at broken-support flip $4,400. <strong>Wed CPI binary</strong> - wide $4,260-$4,410, close $4,330 (hot-lean base case). Thu $4,350 PPI. Fri $4,360. <strong>Bear tail (~35%+15%):</strong> hot CPI = $4,260 break, then $4,200/$4,130 cascade below SMA200. <strong>Bull tail (~25%):</strong> cool CPI + Iran flare = $4,440 relief. <strong>Last week I (and the whole pack) leaned bullish $4,580 and got crushed - actual $4,327, off ~$250. The structural-floor thesis failed. This week I'm trend-aligned bearish.</strong>`,
+      summary: `<strong>EoW $4,360 (+0.8% vs $4,327). Oversold bounce within a confirmed downtrend - capped below the SMA200, CPI-binary.</strong> Gold enters at the 2026 low after the 172k NFP shock (2x consensus) drove a hawkish repricing - markets now price a year-end hike. <strong>Trend is down, and price has broken BELOW the SMA200 ($4,427) - the 200-day is now overhead resistance.</strong> Mon $4,345 oversold bounce off the $4,327 low. Tue $4,360 pre-CPI drift. <strong>Wed CPI binary</strong> - wide $4,260-$4,410, close $4,330 (hot-lean base case). Thu $4,350 PPI. Fri $4,360 - the bounce stays capped well below the $4,427 reclaim line. <strong>Bear tail (~35%+15%):</strong> hot CPI = $4,260 break, then $4,200/$4,130 cascade. <strong>Bull tail (~25%):</strong> cool CPI + Iran flare = $4,427 SMA200 retest. <strong>Last week I (and the whole pack) leaned bullish $4,580 and got crushed - actual $4,327, off ~$250. The structural-floor thesis failed and price is now under the 200-day. This week I'm trend-aligned bearish.</strong>`,
       probBadge: "Oversold-bounce-in-downtrend"
     },
     {
@@ -4284,7 +4318,7 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
       ],
       bias: "Mildly Bullish",
       probability: { sbull: 8, bull: 32, neut: 30, bear: 22, sbear: 8 },
-      summary: `<strong>EoW $4,391 (+1.5% vs $4,327). CPI-day washout-and-recover, then strong finish.</strong> Mon $4,325 flat at SMA200, Tue $4,338 coil. <strong>Wed CPI: deep washout to $4,292 (below SMA200 intraday) then recovers to close $4,374</strong> - a bear-trap reversal on the binary. Thu $4,402 follow-through, Fri $4,391. <strong>Counter to Claude's bear read</strong> - Gemini sees the CPI dip as the wick that gets bought, not a breakdown. Tests $4,308 SMA200 three times early but never closes below. <strong>$31 above Claude on EoW; the Wed CPI read is the key split - Claude $4,330 hot-lean, Gemini $4,374 washout-recover.</strong>`,
+      summary: `<strong>EoW $4,391 (+1.5% vs $4,327). CPI-day washout-and-recover, then strong finish.</strong> Mon $4,325 flat, Tue $4,338 coil. <strong>Wed CPI: deep washout to $4,292 then recovers to close $4,374</strong> - a bear-trap reversal on the binary. Thu $4,402 follow-through, Fri $4,391. <strong>Counter to Claude's bear read</strong> - Gemini sees the CPI dip as the wick that gets bought, not a breakdown. <strong>Note: the whole path sits below the SMA200 ($4,427)</strong> - even Gemini's strong $4,402 Thu close stays under the 200-day, so this is a recovery toward resistance, not a reclaim. <strong>$31 above Claude on EoW; the Wed CPI read is the key split - Claude $4,330 hot-lean, Gemini $4,374 washout-recover.</strong>`,
       probBadge: "CPI washout-and-recover"
     },
     {
@@ -4304,12 +4338,31 @@ ASSETS.xauusd.weeks["2026-06-08"] = {
       probability: { sbull: 20, bull: 38, neut: 25, bear: 12, sbear: 5 },
       summary: `<strong>EoW $4,465 (+3.2% vs $4,327). Most bullish of the pack - clean V-recovery ladder, no CPI breakdown.</strong> Escalating daily: $4,350 to $4,385 to $4,415 to $4,440 to $4,465. <strong>Prices a full bounce-back from the NFP crash</strong> - reads $4,327 as capitulation low, reclaims the broken $4,370-$4,400 zone by Tuesday and never looks back. <strong>Wed CPI = continuation up</strong> ($4,415), counter to Claude's breakdown read. Fri $4,465 reclaims toward SMA21 ($4,520) approach. <strong>$105 above Claude, $74 above Gemini on EoW.</strong> The clearest "the crash was the bottom" voice - if right, $4,327 marks a V-reversal and the dip-buyers win.`,
       probBadge: "V-recovery ladder"
+    },
+    {
+      key: "grok",
+      name: "Grok",
+      label: "xAI - Grok 4",
+      cssVar: "--grok-c",
+      logoBg: "rgba(55,65,81,0.12)",
+      // Grok provided Low/High + "Avg. Estimate" (used as close). No explicit
+      // probability bands this week -> dashboard computes heuristically.
+      daily: [
+        { price: 4430, low: 4310, high: 4550 },
+        { price: 4410, low: 4300, high: 4520 },
+        { price: 4425, low: 4250, high: 4600 },
+        { price: 4385, low: 4220, high: 4550 },
+        { price: 4360, low: 4200, high: 4520 }
+      ],
+      bias: "Bearish",
+      summary: `<strong>EoW $4,360 (+0.8% vs $4,327). Slow bleed lower through the week - wide ranges, no point of recovery.</strong> Avg estimates drift down: $4,430 to $4,410 to $4,425 to $4,385 to $4,360. <strong>Lands exactly on Claude's $4,360 EoW but via the opposite shape</strong> - Grok opens higher ($4,430) and bleeds down into a sentiment-driven Friday close, where Claude bounces off the low then holds. <strong>Wide daily ranges</strong> ($230-$350) flag CPI/PPI as high-volatility wildcards. Wed CPI range $4,250-$4,600 (widest). No explicit probability bands provided - dashboard computes heuristically. <strong>Second bear voice alongside Claude; both at $4,360.</strong>`,
+      probBadge: "Slow-bleed bear"
     }
   ],
   VERDICT: {
     overallBiasLabel: "Mixed",
     overallBiasClass: "bias-mixed",
-    text: "<strong>3 models reporting - pack splits 1 bear (Claude) vs 2 bulls (Gemini, ChatGPT). Consensus EoW $4,405 (+$78 vs $4,327 Friday close, +1.8%), spread $105 from $4,360 (Claude) to $4,465 (ChatGPT).</strong> <strong>All 3 agree on one thing:</strong> $4,327 holds as a near-term low and gold bounces - none price a clean break below the $4,308 SMA200 as the base case. <strong>But the magnitude and shape split widens:</strong> <strong>Claude (bear):</strong> oversold bounce capped within a downtrend, $4,360 EoW, hot-CPI-lean with breakdown risk a ~35% tail. <strong>Gemini (mild bull):</strong> CPI-day washout to $4,292 then bear-trap recovery, $4,391 EoW. <strong>ChatGPT (strong bull):</strong> clean V-recovery ladder, no CPI dip at all, $4,465 EoW - reads the crash as the bottom. <strong>The Wednesday CPI read is the fulcrum:</strong> Claude $4,330 (weak close, breakdown risk), Gemini $4,374 (washout-recover), ChatGPT $4,415 (continuation up). $85 spread on the binary day's close. <strong>Friday divergence is widest:</strong> Claude $4,360, Gemini $4,391, ChatGPT $4,465 - $105 spread, reflecting whether the week is a capped bounce (Claude), a recovery (Gemini), or a full V (ChatGPT). <strong>Probability picture:</strong> Claude downside-skewed (Upside 25%), Gemini balanced-bull (Upside 40%), ChatGPT clearly bull (Upside 58%). Pack tilts mildly bullish 2-to-1 but Claude is the lone voice respecting the hawkish-repricing downtrend. <strong>Critical level $4,308 (SMA200):</strong> holds in all 3 base cases - the question is how hard it bounces. <strong>Bull tail:</strong> cool CPI + Iran flare = $4,470-$4,500 (ChatGPT base). <strong>Bear tail (Claude ~35%):</strong> hot CPI = $4,260 break, $4,200 cascade. <strong>Waiting on: DeepSeek, Grok, Qwen.</strong>"
+    text: "<strong>4 models reporting - pack splits 2 bears (Claude, Grok) vs 2 bulls (Gemini, ChatGPT). Consensus EoW $4,394 (+$67 vs $4,327 Friday close, +1.5%), spread $105 from $4,360 (Claude/Grok) to $4,465 (ChatGPT).</strong> <strong>The pack is now an even directional split.</strong> <strong>Bear camp (Claude $4,360, Grok $4,360):</strong> land identically - both price a capped week below the SMA200 ($4,427), respecting the hot-NFP downtrend. But opposite shapes: Claude bounces off the $4,327 low then holds, Grok opens higher and bleeds down all week. <strong>Bull camp (Gemini $4,391, ChatGPT $4,465):</strong> Gemini prices a CPI washout-and-recover, ChatGPT a clean V-recovery toward the 200-day reclaim. <strong>Key technical context: price is BELOW the SMA200 ($4,427)</strong> - the whole pack prices the week mostly under it; only ChatGPT's $4,465 EoW clears it. <strong>The Wednesday CPI fulcrum splits 4 ways:</strong> Claude $4,330 (weak), Gemini $4,374 (washout-recover), ChatGPT $4,415 (continuation), Grok $4,425 (high-vol, slight bleed). All 4 price a wide Wed range - CPI is unanimously the binary. <strong>Friday divergence:</strong> Claude/Grok $4,360, Gemini $4,391, ChatGPT $4,465. <strong>Probability picture:</strong> Claude (Upside 25%), Gemini (Upside 40%), ChatGPT (Upside 58%), Grok (computed - bearish lean). <strong>Critical level $4,427 (SMA200):</strong> the reclaim line. Holds as resistance = bear camp ($4,360 cluster); reclaimed on a daily close = bull camp ($4,465). <strong>Bull tail:</strong> cool CPI + Iran flare = $4,470-$4,500. <strong>Bear tail (~35%):</strong> hot CPI = $4,260 break, $4,200 cascade (Grok's Fri low is $4,200). <strong>Waiting on: DeepSeek, Qwen.</strong>"
   }
 };
 ASSETS.xauusd.weeks["2026-06-08"].VERDICT.tbd = true;
@@ -4673,7 +4726,7 @@ const MANUAL_DAILY_MAS = {
   SMA21: 4697,
   SMA50: 4780,
   SMA100: 4778,
-  SMA200: 4308
+  SMA200: 4427
 };
 const MANUAL_WEEKLY_MAS = {
   EMA5: 4707,
@@ -5425,6 +5478,11 @@ async function renderMaCard() {
     renderPivots();
     renderRSI();
     recalculateConfluence();
+    // Live MA data just landed — re-sync the Forecast tab's SMA rows so they
+    // match the Moving Averages box instead of the hardcoded fallbacks.
+    if (typeof renderOverview === "function") {
+      try { renderOverview(); } catch (e) {}
+    }
     if (maData.latestH1) updateLatestRow(maData.latestH1, newTs.H1);
     updateDailyOpenRow();
     if (status) {
