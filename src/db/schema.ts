@@ -51,6 +51,14 @@ export const sheetKeysSnapshot = sqliteTable('sheet_keys_snapshot', {
   createdAt:    text('created_at').notNull().default(sql`(datetime('now'))`),
 })
 
+export const discordIntradayLevels = sqliteTable('discord_intraday_levels', {
+  id:         integer('id').primaryKey({ autoIncrement: true }),
+  msgId:      text('msg_id').notNull().unique(),
+  sourceDate: text('source_date').notNull(),
+  levels:     text('levels').notNull(),
+  fetchedAt:  text('fetched_at').notNull().default(sql`(datetime('now'))`),
+})
+
 export const computedKeys = sqliteTable('computed_keys', {
   id:           integer('id').primaryKey({ autoIncrement: true }),
   symbol:       text('symbol').notNull(),

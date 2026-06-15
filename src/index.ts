@@ -1,11 +1,13 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { getDb } from './db/client'
-import { marketCandles, computedKeys, sheetKeysSnapshot } from './db/schema'
+import { marketCandles, computedKeys, sheetKeysSnapshot, discordIntradayLevels } from './db/schema'
 import { eq, and, desc, lt, gte } from 'drizzle-orm'
 type Env = {
   DB: D1Database
-  EA_SECRET: string   // set via: wrangler secret put EA_SECRET
+  EA_SECRET: string
+  DISCORD_TOKEN: string
+  AI: Ai
 }
 
 const app = new Hono<{ Bindings: Env }>()
@@ -369,9 +371,91 @@ app.post('/api/sheet-keys/snapshot', async (c) => {
   return c.json({ ok: true })
 })
 
+const DISCORD_CHANNEL_ID = '1211986974177497159'
+
+async function extractLevelsFromImage(imageBase64: string, ai: Ai): Promise<number[]> {
+  const prompt = 'Extract all price numbers shown with a red background highlight in this chart image. Return ONLY a JSON array of numbers, no other text. Example: [4527.81, 4495.62]'
+  const res: any = await ai.run('@cf/meta/llama-3.2-11b-vision-instruct', {
+    prompt,
+    image: [...atob(imageBase64)].map(c => c.charCodeAt(0)),
+  })
+  const text = (res?.response || res?.result || '').trim()
+  const match = text.match(/\[[\d.,\s]+\]/)
+  if (!match) throw new Error(`No array in CF AI response: ${text}`)
+  return JSON.parse(match[0])
+}
+
+async function fetchDiscordIntradayLevels(env: Env): Promise<{ skipped?: boolean; count?: number; msgId?: string }> {
+  const res = await fetch(
+    `https://discord.com/api/v9/channels/${DISCORD_CHANNEL_ID}/messages?limit=20`,
+    { headers: { Authorization: env.DISCORD_TOKEN } }
+  )
+  if (!res.ok) throw new Error(`Discord API ${res.status}`)
+  const msgs: any[] = await res.json()
+
+  const msg = msgs.find(m =>
+    m.content?.toLowerCase().includes('intraday levels') &&
+    m.attachments?.length > 0
+  )
+  if (!msg) return { skipped: true }
+
+  const db = getDb(env)
+  const existing = await db
+    .select({ id: discordIntradayLevels.id })
+    .from(discordIntradayLevels)
+    .where(eq(discordIntradayLevels.msgId, msg.id))
+    .limit(1)
+  if (existing.length > 0) return { skipped: true }
+
+  const imgUrl = msg.attachments[0].url
+  const imgRes = await fetch(imgUrl)
+  if (!imgRes.ok) throw new Error(`Image fetch ${imgRes.status}`)
+  const imgBuf = await imgRes.arrayBuffer()
+  const imgBase64 = btoa(String.fromCharCode(...new Uint8Array(imgBuf)))
+
+  const levels = await extractLevelsFromImage(imgBase64, env.AI)
+  const sourceDate = msg.timestamp.slice(0, 10)
+
+  await db.insert(discordIntradayLevels).values({
+    msgId: msg.id,
+    sourceDate,
+    levels: JSON.stringify(levels.sort((a, b) => b - a)),
+  }).onConflictDoNothing()
+
+  console.log(`[discord-intraday] fetched ${levels.length} levels from ${sourceDate}`)
+  return { count: levels.length, msgId: msg.id }
+}
+
+// GET /api/intraday-discord — latest intraday levels from Discord
+app.get('/api/intraday-discord', async (c) => {
+  const db = getDb(c.env)
+  const rows = await db
+    .select()
+    .from(discordIntradayLevels)
+    .orderBy(desc(discordIntradayLevels.sourceDate))
+    .limit(1)
+  if (rows.length === 0) return c.json({ levels: [], sourceDate: null })
+  const row = rows[0]
+  return c.json({ levels: JSON.parse(row.levels), sourceDate: row.sourceDate, msgId: row.msgId })
+})
+
+// POST /api/intraday-discord/sync — manual trigger (requires X-EA-Secret)
+app.post('/api/intraday-discord/sync', async (c) => {
+  const secret = c.req.header('X-EA-Secret')
+  if (!secret || secret !== c.env.EA_SECRET) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+  const result = await fetchDiscordIntradayLevels(c.env)
+  return c.json({ ok: true, ...result })
+})
+
 export default {
   fetch: app.fetch,
-  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
-    await snapshotSheetKeys(env)
+  async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
+    if (event.cron === '30 22 * * *') {
+      await fetchDiscordIntradayLevels(env)
+    } else {
+      await snapshotSheetKeys(env)
+    }
   },
 }
